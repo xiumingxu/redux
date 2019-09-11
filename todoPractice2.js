@@ -1,38 +1,15 @@
-function createStore(reducer) {
-  // The store should have four parts
-  // 1. The state
-  // 2. Get the state.
-  // 3. Listen to changes on the state.
-  // 4. Update the state
-
-  let state;
-  let listeners = [];
-
-  const getState = () => state;
-
-  const subscribe = listener => {
-    listeners.push(listener);
-    // it is for unsubscribe the functions
-    return () => {
-      listeners = listeners.filter(l => l !== listener);
-    };
-  };
-  const dispatch = action => {
-    state = reducer(state, action);
-    listeners.forEach(listern => listern());
-  };
-
-  return {
-    getState,
-    subscribe,
-    dispatch
-  };
+function generateId() {
+  return (
+    Math.random()
+      .toString(36)
+      .substring(2) + new Date().getTime().toString(36)
+  );
 }
-const store = createStore(app);
+const store = Redux.createStore(app);
 
-store.subscribe(() => {
-  console.log("The new state is:", store.getState());
-});
+// store.subscribe(() => {
+//   console.log("The new state is:", store.getState());
+// });
 
 // unsubscibe the listener repush all the listeners
 // whenever subscribe, there is a repush of all the listeners.
@@ -40,11 +17,10 @@ const unsubscribe = store.subscribe(() => {
   console.log("The store changed.");
 });
 
-unsubscribe();
+// unsubscribe();
 
 // App Code
 // reducer : state, action
-
 const ADD_TODO = "ADD_TODO";
 const REMOVE_TODO = "REMOVE_TODO";
 const TOGGLE_TODO = "TOGGLE_TODO";
