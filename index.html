@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>TODO GOALS</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    
+    <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
+    <!-- translate the js code to normal js -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+</head>
+
 <body>
     <div>
         <h1>TODO</h1>
@@ -17,13 +24,191 @@
         <input id="goal" type="text" placeholder="Add Goal"></input><button id="goalBtn">Add goal</button>
         <ul id="goals"></ul>
     </div>
+
+    <hr />
+    <div id="app"></div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js"></script>
 <!-- <script src="todoPractice2.js"></script> -->
 <script src="todo2.js"></script>
-</head>
+
+<script type="text/babel">
+
+
+ const List  = (props) => {
+    const {items, remove} = props;
+    return(
+    <div>
+        <ul>
+            {
+                items.map((item)=>{
+                    return (
+                        <li key={item.id}> 
+                         <span> {item.name} </span>
+                         <button onClick={()=>remove(item)}> X </button>
+                        </li>
+                    )
+                })
+            }
+        </ul>
+    </div>
+    )
+
+}
+ class Todos extends React.Component{
+
+      addItem = (e) => {
+        e.preventDefault()
+
+        return API.saveTodo(this.input.value)
+        .then((todo) =>{
+            this.props.store.dispatch(addTodoAction(todo))
+            this.input.value = ''
+        }).catch(
+            ()=>{
+               alert('There is an error. Try again');
+            }
+        )
+      }
+
+    //   function handleDeleteTodo(todo){
+
+    //     return (dispatch) => {
+            
+            
+    //         return API.deleteTodo(todo.id)
+    //              .catch(() => {
+    //          this.props.store.dispatch(addTodoAction(todo))
+    //         alert('An error occurred. Try again.')
+    //     })
+
+
+    //       return removeTodoAction(todo.id);
+    //   }
+
+      
+      
+      removeItem =(todo)=>{
+        //do something first define the action
+
+        this.props.store.dispatch(this.handleDeleteTodo);
+
+      }
+
+      toggleItem = (id)=>{
+          this.props.store.dispatch(toggleTodoAction(id))
+          return API.saveTodoToggle(id)
+          .catch(
+              ()=>{
+                  this.props.store.dispatch(toggleTodoAction(id));
+                   alert('An error occurred. Try again.');
+              }
+          )
+      }
+      handleDeleteTodo =  (todo) => {
+        return (dispatch) => {
+           dispatch(removeTodoAction(todo.id))
+         return API.deleteTodo(todo.id)
+          .catch(() => {
+            dispatch(addTodoAction(todo))
+            alert('An error occurred. Try again.')
+          })
+      }
+    }
+
+     render(){
+         return <div>
+             <h1>Todo List</h1>
+            <input
+              type='text'
+              placeholder='Add Todo'
+              ref={(input) => this.input = input}
+            />
+            <button onClick={this.addItem}>Add Todo</button>
+            <List items={this.props.todos} remove={this.removeItem}/>
+            </div>
+     }
+
+ }
+ class Goals extends React.Component{
+     addItem = (e) => {
+         e.preventDefault();
+
+         return API.saveGoal(this.input.value)
+          .then((goal) => {
+            this.props.store.dispatch(addGoalAction(goal))
+            this.input.value = ''
+          })
+          .catch(() => alert('There was an error. Try again.'))
+
+     }
+     removeItem = (goal) => {
+        this.props.store.dispatch(removeGoalAction(goal.id))
+
+        return API.deleteGoal(goal.id)
+          .catch(() => {
+            this.props.store.dispatch(addGoalAction(goal))
+            alert('An error occurred. Try again.')
+        })
+      }
+     render(){
+         return (
+            <div>
+                <h1> Goals </h1>
+                <input 
+                    type="text"
+                    placeholder='Add Goal'
+                    // here the input is the input added to the input value
+                    ref={(input) => this.input = input}
+                /><button onClick={this.addItem}> Add Goal </button>
+                <List items={this.props.goals} remove={this.removeItem}/>
+
+            </div>
+        )
+     }
+
+ }
+ class App extends React.Component {
+    //  componentDidMount only mount once but when subscirbe, could have a autipattern  
+     componentDidMount () {
+
+        const { store } = this.props;
+       
+        // add promise
+         Promise.all([
+          API.fetchTodos(),
+          API.fetchGoals()
+        ]).then(([ todos, goals ]) => {
+          store.dispatch(receiveDataAction(todos, goals))
+        })
+        store.subscribe(() => this.forceUpdate());
+      }
+     render(){
+        const { store } = this.props;
+        const { todos, goals, loading } = store.getState()
+
+        if(loading == true)
+            return <h3> Loading ... </h3>
+
+         return (
+             <div>
+                <Todos todos={todos} store={this.props.store} />
+                <Goals goals={goals} store={this.props.store} />
+            </div>
+         )
+     }
+ }
+
+ // store created in the todo2.js
+ ReactDOM.render(
+    <App store={store}/>,
+     document.getElementById("app")
+ )
+
+
+
+</script>
+
+
+
 </html>
-
-
-
-
